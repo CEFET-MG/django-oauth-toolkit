@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 import json
-
+import re
 from oauthlib import oauth2
 from oauthlib.common import urlencode, urlencoded, quote
 
+from oauth2_provider.models import Grant
 from .exceptions import OAuthToolkitError, FatalClientError
 from .settings import oauth2_settings
 from .compat import urlparse, urlunparse
@@ -118,6 +119,11 @@ class OAuthLibCore(object):
                 uri=credentials['redirect_uri'], scopes=scopes, credentials=credentials)
             uri = headers.get("Location", None)
 
+            code=re.findall('code=(.[^&]*)', uri)
+            if code:
+                grant_code=Grant.objects.get(code=code[0])
+                grant_code.session_key=request.session.session_key
+                grant_code.save()
             return uri, headers, body, status
 
         except oauth2.FatalClientError as error:

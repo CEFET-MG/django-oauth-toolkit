@@ -154,6 +154,7 @@ class Grant(models.Model):
     expires = models.DateTimeField()
     redirect_uri = models.CharField(max_length=255)
     scope = models.TextField(blank=True)
+    session_key = models.TextField(blank=True, null=True)
 
     def is_expired(self):
         """
@@ -190,6 +191,7 @@ class AccessToken(models.Model):
     application = models.ForeignKey(oauth2_settings.APPLICATION_MODEL)
     expires = models.DateTimeField()
     scope = models.TextField(blank=True)
+    session_key = models.TextField(blank=True, null=True)
 
     def is_valid(self, scopes=None):
         """

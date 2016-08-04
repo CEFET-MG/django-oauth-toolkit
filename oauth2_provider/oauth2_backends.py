@@ -5,7 +5,7 @@ import re
 from oauthlib import oauth2
 from oauthlib.common import urlencode, urlencoded, quote
 
-from oauth2_provider.models import Grant
+from oauth2_provider.models import Grant, AccessToken
 from .exceptions import OAuthToolkitError, FatalClientError
 from .settings import oauth2_settings
 from .compat import urlparse, urlunparse
@@ -139,10 +139,20 @@ class OAuthLibCore(object):
         """
         uri, http_method, body, headers = self._extract_params(request)
         extra_credentials = self._get_extra_credentials(request)
+        grant_code=None
+        if 'code' in request.POST:
+            grant_code=Grant.objects.get(code=request.POST['code'])
 
         headers, body, status = self.server.create_token_response(uri, http_method, body,
                                                                   headers, extra_credentials)
         uri = headers.get("Location", None)
+
+        if status==200 and grant_code:
+            body_json=json.loads(body)
+            token=AccessToken.objects.get(token=body_json['access_token'])
+            token.session_key=grant_code.session_key
+            token.save()
+
 
         return uri, headers, body, status
 

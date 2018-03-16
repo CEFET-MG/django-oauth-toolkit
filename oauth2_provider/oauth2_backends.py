@@ -141,7 +141,7 @@ class OAuthLibCore(object):
         extra_credentials = self._get_extra_credentials(request)
         grant_code=None
         if 'code' in request.POST:
-            grant_code=Grant.objects.get(code=request.POST['code'])
+            grant_code=Grant.objects.filter(code=request.POST['code']).first()
 
         headers, body, status = self.server.create_token_response(uri, http_method, body,
                                                                   headers, extra_credentials)
